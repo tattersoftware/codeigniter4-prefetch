@@ -4,7 +4,7 @@ use CodeIgniter\Config\BaseService;
 
 class Services extends BaseService
 {
-    public static function prefetch(BaseConfig $config = null, bool $getShared = true)
+    public static function prefetch($config = null, bool $getShared = true)
     {
 		if ($getShared)
 			return static::getSharedInstance('prefetch', $config);
