@@ -37,4 +37,18 @@ class Prefetch
 	{
 		return $this->errors;
 	}
+	
+	// Set heuristics flag on-the-fly
+	public function setHeuristics(bool $bool)
+	{
+		$this->config->heuristics = $bool;
+		return $this;
+	}
+	
+	// Set training flag on-the-fly
+	public function setTraining(bool $bool)
+	{
+		$this->config->training = $bool;
+		return $this;
+	}
 }
