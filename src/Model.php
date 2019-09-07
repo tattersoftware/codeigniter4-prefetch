@@ -13,11 +13,15 @@ class Model extends \CodeIgniter\Model
 	// Tracker for if deleted items have been fetched
 	protected $haveDeleted;
 	
+	// Array of related models to fetch from when using finders
+	protected $with;
+	
 	// Call CI model constructor then load Prefetch
 	public function __construct(ConnectionInterface &$db = null, ValidationInterface $validation = null)
 	{
         parent::__construct($db, $validation);
 		
+		// First model loads the prefetch library
 		if (is_null(self::$prefetch))
 		{
 			self::$prefetch = Services::prefetch();
@@ -32,6 +36,29 @@ class Model extends \CodeIgniter\Model
 			$event = 'after' . $name;
 			$this->{$event}[] = 'prefetchAfter' . $name;
 		}
+	}
+	
+	/**
+	 * Adds models from which the finders should load relations.
+	 *
+	 * @param mixed   $with       Model or array of models
+	 * @param bool    $overwrite  Whether to start fresh or merge with existing
+	 *
+	 * @return $this
+	 */
+	public function with($with, bool $overwrite = false)
+	{
+		if ($overwrite)
+			$this->with = [];
+
+		if (! is_array($with))
+		{
+			$with = [$with];
+		}
+
+		$this->with = array_merge($this->with, $with);
+		
+		return $this;
 	}
 
 	//--------------------------------------------------------------------
@@ -63,11 +90,11 @@ class Model extends \CodeIgniter\Model
 		{
 			return parent::find($id);
 		}
-		
+
 		// Check the store for requested items
 		$items = [];
 		$remainder = self::$prefetch->fetch($this->table, $id, $items);
-			
+
 		// If the store had everything then we are done
 		if (empty($remainder))
 		{
@@ -230,6 +257,29 @@ class Model extends \CodeIgniter\Model
 		self::$prefetch->collect($this->table, $this->primaryKey, $items, $ids ?? []);
 
 		unset($items);
+		
+		// Check for relatives that need loading
+		if (! empty($this->with))
+		{
+			self::$prefetch->fetchRelatives($this->table, $this->with);
+		}
+		
 		return $data;
+	}
+	
+	
+	protected function prefetchAfterInsert(array $data)
+	{
+	
+	}
+	
+	protected function prefetchAfterUpdate(array $data)
+	{
+	
+	}
+	
+	protected function prefetchAfterDelete(array $data)
+	{
+	
 	}
 }

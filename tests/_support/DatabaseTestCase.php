@@ -42,7 +42,20 @@ class DatabaseTestCase extends \CodeIgniter\Test\CIDatabaseTestCase
 		parent::setUp();
 		
 		$config = new \Tatter\Prefetch\Config\Prefetch();
-		$config->silent = false;
-		$this->prefetch = Services::prefetch($config, false);
+		$config->silent     = false;
+		$config->heuristics = false;
+		$config->training   = false;
+		
+		$this->prefetch = Services::prefetch($config, true);
+	}
+	
+    // Reset the store
+	public function tearDown()
+	{
+        parent::tearDown();
+
+		$this->prefetch->reset()
+			->setHeuristics(false)
+			->setTraining(false);
 	}
 }

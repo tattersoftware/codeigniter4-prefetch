@@ -39,6 +39,16 @@ class Prefetch
 		$this->config = $config;
 	}
 	
+	// Reset this instance
+	public function reset()
+	{
+		$this->store  = [];
+		$this->errors = [];
+		$this->size   = 0;
+		
+		return $this;
+	}
+	
 	// Return any error messages
 	public function getErrors(): array
 	{
@@ -76,26 +86,58 @@ class Prefetch
 	 */
 	public function fetch(string $table, array $keys, array &$items): array
 	{
-		if (empty($store[$table]))
+		if (empty($this->store[$table]))
 			return $keys;
 
 		// Check each key for an item or confirmed absence
 		$remainder = [];
 		foreach ($keys as $key)
 		{
-			if (! isset($store[$table][$key]))
+			if (! isset($this->store[$table][$key]))
 			{
 				$remainder[] = $key;
 			}
 			
 			// Check for an item since it can be boolean false
-			if ($store[$table][$key])
+			if ($this->store[$table][$key])
 			{
-				$items[] &= $store[$table][$key];
+				$items[] = $this->store[$table][$key];
 			}
 		}
 		
 		return $remainder;
+	}
+	
+	/**
+	 * Checks for and loads items related to a table
+	 *
+	 * @param string  $table   The table of reference
+	 * @param array   $models  The models to query for relatives
+	 *
+	 */
+	public function fetchRelatives(string $table, array $models)
+	{
+		if (empty($this->store[$table]))
+			return;
+		if (empty($models))
+			return;
+
+		// Get stored keys for this table
+		$keys = array_keys($this->store[$table]);
+		
+		// Handle models one at a time
+		foreach ($models as $model)
+		{
+			// Convert class strings to their models
+			if (is_string($model))
+			{
+				$model = new $model();
+			}
+			
+			// Check for the join table
+			// WIP - table is protected, need new approach. goodnight
+			$tables = [$table, $model->table];
+		}
 	}
 	
 	/**
